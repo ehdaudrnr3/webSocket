@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chat</title>
+<script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript">
+	var webSocket;
+	
+	$(document).ready(function() {
+		$("#enter").click(function(){
+			connect();
+		});
+		
+		$("#exit").click(function() {
+			disconnect();
+		});
+		
+		$("#message").keypress(function(e) {
+			var keyCode = (e.keyCode ? e.keyCode : e.which);
+			if(keyCode == "13") {
+				send();
+			}
+			e.stopPropagation();
+		});
+		
+		$("#send").click(function(){
+			send();
+		});
+	});
+	
+	function connect() {
+		webSocket = new WebSocket("ws://localhost:8080/chat-ws");
+		webSocket.onopen = function(e) {
+			appendMessage("연결되었습니다.");
+		}
+		
+		webSocket.onmessage = function(e) {
+			var data = e.data;
+			
+			if (data.substring(0, 4) == "msg:") {
+				appendMessage(data.substring(4));
+			}
+		}
+		
+		webSocket.onclose = function(e) {
+			appendMessage("연결을 끊었습니다.");
+		}
+	}
+	
+	function disconnect() {
+		webSocket.close();
+	}
+	
+	function send() {
+		var name = $("#name").val();
+		var message = $("#message").val();
+		
+		webSocket.send("msg:"+name+":"+ message);
+		$("#message").val("");
+	}
+	
+	function appendMessage(msg) {
+		$("#messageArea").append(msg+"<br />");
+		var chatAreaHeight = $("#chatArea").height();
+		var maxScroll = $("#messageArea").height() - chatAreaHeight;
+		$("#chatArea").scrollTop(maxScroll);
+	}
+	
+</script>
+<style>
+#chatArea {
+	width: 200px; height: 100px; overflow-y: auto; border: 1px solid black;
+}
+</style>
+</head>
+<body>
+	이름 : <input type="text" id="name" />
+	<input type="button" id="enter" value="입장" />
+	<input type="button" id="exit" value="나가기" />
+	
+	<h1>대화 영역</h1>
+	<div id="chatArea">
+		<div id="messageArea"></div>
+	</div>
+	<br />
+	<input type="text" id="message" />
+	<input type="button" id="send" value="전송" />
+</body>
+</html>

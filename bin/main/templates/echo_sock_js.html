@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>에코</title>
+<script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="js/sockjs-0.3.min.js"></script>
+<script type="text/javascript">
+	
+	$(document).ready(() => {
+		$("#sendBtn").click(() =>{
+			send();
+		})
+	});
+	
+	var ws;
+	
+	function send() {
+		ws = new SockJS("http://localhost:8080/echo.sockjs");
+		ws.onmessage = function(e) {
+			alert("서버에서 데이터를 받음 : \n"+e.data);
+			ws.close();
+		}
+		
+		ws.onclose = function(e) {
+			alert("연결 끊김");
+		}
+		
+		ws.onopen = function(){
+			var message = $("#message").val();
+			ws.send(message);
+		}
+	}
+</script>
+</head>
+<body>
+    <input type="text" id="message">
+    <input type="button" id="sendBtn" value="전송">
+</body>
+</html>
